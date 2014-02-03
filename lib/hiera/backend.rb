@@ -201,10 +201,24 @@ class Hiera
         @backends ||= {}
         answer = nil
 
+        if key =~ /^([^\.]+)\.(.*)/
+          outerkey  = $1
+          innerkeys = $2.split(/\./)
+        else
+          outerkey  = key
+          innerkeys = []
+        end
+
         Config[:backends].each do |backend|
           if constants.include?("#{backend.capitalize}_backend") || constants.include?("#{backend.capitalize}_backend".to_sym)
             @backends[backend] ||= Backend.const_get("#{backend.capitalize}_backend").new
-            new_answer = @backends[backend].lookup(key, scope, order_override, resolution_type)
+            new_answer = @backends[backend].lookup(outerkey, scope, order_override, resolution_type)
+
+            innerkeys.each do |ikey|
+              raise Exception, "Hiera type mismatch: can't index a non-hash with #{ikey}" unless new_answer.is_a?(Hash)
+              raise Exception, "Hiera type mismatch: non-existent key: #{ikey}" unless new_answer.has_key?(ikey)
+              new_answer = new_answer[ikey]
+            end
 
             if not new_answer.nil?
               case resolution_type

@@ -183,6 +183,16 @@ $ hiera -a classes location=dc1
 ["users::common", "users::dc1"]
 </pre>
 
+If the data you're looking for is contained inside a hash you can
+index it using dots, like this:
+
+<pre>
+$ hiera user
+{"name"=>"hiera", "home"=>"/home/hiera"}
+$ hiera user.name
+hiera
+</pre>
+
 ## Querying from code
 
 This is the same query programatically as in the above CLI example:
